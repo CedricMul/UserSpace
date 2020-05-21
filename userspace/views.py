@@ -5,22 +5,30 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from userspace.models import MyUser
 from userspace.forms import sign_in, create_user
+from django.conf import settings
 
 # Create your views here.
 def index(request):
-    return render(request, 'index.html')
+    if settings.AUTH_USER_MODEL:
+        umodel = settings.AUTH_USER_MODEL
+    else:
+        umodel = None
+    return render(request, 'index.html', {'umodel': umodel})
 
 def signInView(request):
     if request.method == "POST":
         form = sign_in(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            user = authenticate(
-                request, username=data['username'], password=data['password']
+            suser = authenticate(
+                username=data['username'],
+                password=data['password']
                 )
-            if user:
-                login(request, user)
-                HttpResponseRedirect('profile/' + str(user.id))
+            if suser:
+                login(request, suser)
+                return HttpResponseRedirect(reverse('home'))
+        else:
+            return HttpResponseRedirect(reverse('home'))
     form = sign_in()
     return render(
         request,
@@ -45,11 +53,15 @@ def createUserView(request):
         form = create_user(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            MyUser.objects.create(
+            x = MyUser.objects.create(
                 displayname=data['displayname'],
-                username=data['username']
+                username=data['username'],
+                password=data['password']
             )
-            return HttpResponseRedirect(reverse('home'))
+            if x:
+                login(request, x)
+                return HttpResponseRedirect(reverse('home'))
+        #else: 
     form = create_user()
     return render(
         request,
@@ -72,3 +84,7 @@ def formHandle(request, form_type):
         'login': signInView(request)
     }
     return typeForm[form_type]
+
+def logoutView(request):
+    logout(request)
+    return HttpResponseRedirect(reverse('home'))
