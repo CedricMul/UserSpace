@@ -1,4 +1,9 @@
 <h1>Welcome to UserSpace!</h1>
+<h3>{{ request.user.username}}</h3>
+<h3>{{ request.user.displayname }}</h3>
+<h3>{{ umodel }}</h3>
+<p>Logged in?: {{ request.user.is_authenticated}}</p>
+<p><a href="/logout/">Logout</a></p>
 <p>If you have a profile,<a href='login/'>Log In!</a></p>
 <p>Otherwise, create one before logging in!</p>
 <p><a href='createUser/'>Create User</a></p>
